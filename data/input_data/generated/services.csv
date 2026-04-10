@@ -1,0 +1,13 @@
+service_id,service_name,sector_type,risk_tier,supports_myinfo_flag,supports_signing_flag
+S0001,banking_service_01,banking,high,True,True
+S0002,telecom_service_02,telecom,low,False,False
+S0003,insurance_service_03,insurance,medium,True,True
+S0004,telecom_service_04,telecom,low,False,False
+S0005,banking_service_05,banking,medium,True,True
+S0006,insurance_service_06,insurance,low,True,True
+S0007,other_private_service_07,other_private,high,False,True
+S0008,other_private_service_08,other_private,low,False,True
+S0009,government_service_09,government,high,True,True
+S0010,insurance_service_10,insurance,low,True,True
+S0011,other_private_service_11,other_private,medium,False,True
+S0012,insurance_service_12,insurance,high,True,True

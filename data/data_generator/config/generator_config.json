@@ -1,0 +1,19 @@
+{
+  "random_seed": 42,
+  "num_users": 5000,
+  "avg_devices_per_user": 1.25,
+  "num_services": 12,
+  "avg_sessions_per_user": 8,
+  "fraud_session_ratio": 0.12,
+  "legit_unusual_session_ratio": 0.15,
+  "scenario_weights": {
+    "normal_returning_login_and_normal_usage": 0.65,
+    "legitimate_travel_or_device_change_login": 0.10,
+    "legitimate_first_time_or_infrequent_service_usage": 0.05,
+    "social_engineering_or_malicious_approval": 0.06,
+    "remote_control_or_device_compromise_access": 0.04,
+    "repeated_attempts_before_success": 0.03,
+    "relinquished_account_access_and_operation": 0.04,
+    "suspicious_downstream_misuse_after_successful_access": 0.03
+  }
+}
