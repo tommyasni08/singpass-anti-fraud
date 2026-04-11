@@ -29,6 +29,7 @@ The following decisions guide this version:
 - Recovery is framed as account access recovery rather than password reset.
 - Consent is treated as a full event family, not just a single positive outcome.
 - Digital signing is treated as its own category because it is a core Singpass capability with distinct fraud implications.
+- Service usage is treated as its own category because many post-login sessions involve ordinary interaction that is neither consent nor signing.
 - Account and device lifecycle events are included because they provide important trust context for both login risk and post-compromise monitoring.
 
 ## Event categories
@@ -79,7 +80,25 @@ Why this category matters:
 - it introduces high-consequence approval events that may be technically valid but risky in intent
 - it is especially relevant for modelling abuse beyond ordinary login success or failure
 
-### 3. Consent / Data Sharing
+### 3. Service Usage
+
+This category covers ordinary post-login interaction with a service after authentication has already succeeded.
+
+Representative event types:
+
+- service_access_view
+- dashboard_view
+- profile_view
+- history_view
+- service_action_completed
+
+Why this category matters:
+
+- not every session leads to consent or signing
+- a realistic shared dataset should still represent normal post-login usage
+- this category provides the behavioural baseline that project 2 needs in order to distinguish ordinary usage from suspicious downstream misuse
+
+### 4. Consent / Data Sharing
 
 This category covers user consent and the resulting data-sharing flow, such as Myinfo-related access.
 
@@ -98,7 +117,7 @@ Why this category matters:
 - in a Singpass-like system, fraud risk can sit in manipulated or misunderstood approvals, not only in account takeover
 - modelling both successful and unsuccessful consent outcomes helps represent realistic user journeys
 
-### 4. Recovery
+### 5. Recovery
 
 This category covers the process of regaining trusted access or re-establishing identity assurance when a user cannot proceed normally.
 
@@ -120,7 +139,7 @@ Why this category matters:
 - recovery events are often powerful fraud signals because they can appear shortly before suspicious authentication or approval activity
 - in a Singpass-like system, recovery should be understood more broadly than password reset alone
 
-### 5. Account / Device Lifecycle
+### 6. Account / Device Lifecycle
 
 This category covers events that change trust state or influence future authentication risk.
 
@@ -145,7 +164,7 @@ Why this category matters:
 
 For the first project, the main scored event family will be `Login / Authentication`. The other categories provide surrounding context, precursor signals, or linked high-trust actions that help make login-risk scoring more realistic.
 
-For the second project, the event universe can expand naturally into `Digital Signing / Authorisation`, `Consent / Data Sharing`, `Recovery`, and `Account / Device Lifecycle`, which are all relevant for post-compromise monitoring and damage containment.
+For the second project, the event universe can expand naturally into `Service Usage`, `Digital Signing / Authorisation`, `Consent / Data Sharing`, `Recovery`, and `Account / Device Lifecycle`, which are all relevant for post-compromise monitoring and damage containment.
 
 This shared taxonomy supports a coherent portfolio design where both projects operate on the same Singpass-like environment rather than on two unrelated synthetic systems.
 

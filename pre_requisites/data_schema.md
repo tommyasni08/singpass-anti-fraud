@@ -184,6 +184,7 @@ Minimum fields:
 Expected event categories:
 
 - login_authentication
+- service_usage
 - digital_signing_authorisation
 - consent_data_sharing
 - recovery
@@ -237,6 +238,7 @@ For the login-risk project, it supports:
 For the post-compromise monitoring project, it supports:
 
 - post-authentication event sequences
+- ordinary service-usage sequences after login
 - consent, signing, and lifecycle activity after login
 - suspicious chains of behaviour across a user, device, or service
 - downstream damage labelling

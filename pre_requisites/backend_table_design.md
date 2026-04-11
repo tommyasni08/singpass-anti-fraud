@@ -393,8 +393,8 @@ Column guidance:
 | --- | --- | --- |
 | `event_id` | synthetic unique event identifier | values like `E00000001` |
 | `event_timestamp` | when the event happened | datetime |
-| `event_category` | high-level event family | limited set such as `login_authentication`, `account_device_lifecycle`, `consent_data_sharing`, `digital_signing_authorisation`, `recovery` |
-| `event_type` | specific event inside the category | values like `qr_login_request`, `qr_login_approved`, `app_login_success`, `device_changed`, `consent_granted`, `sign_approved` |
+| `event_category` | high-level event family | limited set such as `login_authentication`, `service_usage`, `account_device_lifecycle`, `consent_data_sharing`, `digital_signing_authorisation`, `recovery` |
+| `event_type` | specific event inside the category | values like `qr_login_request`, `qr_login_approved`, `app_login_success`, `service_access_view`, `dashboard_view`, `device_changed`, `consent_granted`, `sign_approved` |
 | `user_id` | related user | one of the IDs from `users` |
 | `device_id` | related device | one of the IDs from `devices`, nullable for some events if needed |
 | `service_id` | related service | one of the IDs from `services`, nullable for some lifecycle events |
