@@ -26,3 +26,14 @@ CHANNELS = ["mobile_app", "desktop_web", "mobile_web", "api"]
 EVENT_RESULTS = ["success", "failure", "rejected", "cancelled", "timeout", "completed"]
 
 FRAUD_STAGES = ["login_stage", "post_login_stage"]
+
+SCENARIO_NAMES = [
+    "normal_returning_login_and_normal_usage",
+    "legitimate_travel_or_device_change_login",
+    "legitimate_first_time_or_infrequent_service_usage",
+    "social_engineering_or_malicious_approval",
+    "remote_control_or_device_compromise_access",
+    "repeated_attempts_before_success",
+    "relinquished_account_access_and_operation",
+    "suspicious_downstream_misuse_after_successful_access",
+]
