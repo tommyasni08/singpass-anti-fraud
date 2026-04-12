@@ -1,6 +1,6 @@
 # Singpass Post-Compromise Monitoring
 
-Last updated: 8 April 2026
+Last updated: 12 April 2026
 
 ## Project Goal
 
@@ -179,6 +179,12 @@ The main analytical units in project 2 are:
 - sessions
 - post-login event sequences
 - user-level and device-level behaviour over time
+
+In the implemented version 1 build, the scoring unit is:
+
+- one row per monitored post-login session
+
+The later operational decision layer can still aggregate session outcomes to the user or account level.
 
 ## Event types most relevant to project 2
 

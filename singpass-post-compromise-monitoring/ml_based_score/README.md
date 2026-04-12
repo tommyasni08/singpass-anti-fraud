@@ -12,13 +12,23 @@ The ML layer is meant to capture softer post-login misuse patterns that the rule
 
 - `model_spec.md`: model design, split strategy, and feature scope
 - `src/train_ml_baseline.py`: session-level ML training and evaluation script
-
-## Planned outputs
-
 - `generated/post_login_ml_scores.csv`
 - `generated/ml_evaluation_report.md`
 - `generated/feature_importance.csv`
 - `generated/xgb_model.json`
+
+## Current status
+
+Current narrowed behavioural XGBoost baseline at `ml_score >= 0.5`:
+
+- review rate: `14.46%`
+- recall: `83.07%`
+- precision: `99.96%`
+
+Important note:
+
+- the first ML attempt was too perfect because the feature set still contained direct session-composition shortcuts
+- the current baseline is the corrected version with a narrower behavioural feature set
 
 ## Input dependency
 
@@ -33,5 +43,5 @@ singpass-post-compromise-monitoring/feature_engineering/generated/post_login_ses
 From the repository root, using the project virtual environment:
 
 ```bash
-./3.11_tasni_venv/bin/python singpass-post-compromise-monitoring/ml_based_score/src/train_ml_baseline.py
+python singpass-post-compromise-monitoring/ml_based_score/src/train_ml_baseline.py
 ```

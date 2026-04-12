@@ -187,7 +187,7 @@ It should:
 
 - catch the clearest downstream misuse patterns
 - provide explicit containment logic
-- serve as a baseline to compare against the later ML model and hybrid policy
+- serve as a baseline to compare against the ML model and the final hybrid policy
 
 ## Important caution
 

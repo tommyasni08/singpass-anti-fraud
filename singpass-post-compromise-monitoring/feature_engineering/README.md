@@ -23,6 +23,23 @@ The current analytical unit is:
 - `generated/post_login_session_features.csv`: session-level monitoring table
 - `generated/feature_quality_report.md`: feature inspection and quality checks
 
+## Current status
+
+Current output size:
+
+- `38,834` monitored sessions
+- `6,757` fraud-labelled sessions
+- `32,077` non-fraud sessions
+
+Current feature observations:
+
+- the table is strong for rule design because explicit downstream misuse is visible at the session level
+- the table is also usable for ML, but only after removing direct label-proxy features from the behavioural baseline
+- nulls are concentrated in the expected places:
+  - no sensitive event in session
+  - no service switch in session
+  - no prior session history yet
+
 ## How to run
 
 From the repository root:
