@@ -1,6 +1,6 @@
 # Feature Specification
 
-Last updated: 11 April 2026
+Last updated: 12 April 2026
 
 ## Purpose
 
@@ -37,14 +37,7 @@ The scoring unit for project 1 is:
 
 - one row per decisive login event
 
-In the current generated dataset, the decisive login event is typically one of:
-
-- `app_login_success`
-- `qr_login_approved`
-- `qr_login_rejected`
-- `app_login_failure`
-
-For version 1, the recommended scored subset is:
+In the current generated dataset, the decisive successful login events used for scoring are:
 
 - successful decisive login outcomes only
 

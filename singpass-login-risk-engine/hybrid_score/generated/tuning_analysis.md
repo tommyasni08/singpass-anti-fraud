@@ -75,6 +75,22 @@ Result:
 - recall: `79.82%`
 - precision: `86.86%`
 
+### Tuned hybrid v3
+
+Policy adjustments:
+
+- keep the `ml_score >= 0.93` review threshold
+- keep the selected strong-rule conditions
+- additionally escalate two small high-value pockets:
+  - `rule_risk_band = low` and `0.30 <= ml_score < 0.50`
+  - `rule_risk_band = medium` and `0.50 <= ml_score < 0.80`
+
+Result:
+
+- review rate: `10.46%`
+- recall: `80.96%`
+- precision: `85.93%`
+
 ## Decision
 
-Hybrid v2 was selected because it is the best current policy that satisfies the stated operating goal.
+Hybrid v3 was selected because it is the best current policy that satisfies the stated operating goal.

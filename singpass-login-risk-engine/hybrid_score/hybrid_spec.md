@@ -1,6 +1,6 @@
 # Hybrid Specification
 
-Last updated: 11 April 2026
+Last updated: 12 April 2026
 
 ## Purpose
 
@@ -45,12 +45,13 @@ The ML layer should add coverage where:
 - rule evidence is weaker
 - the login looks suspicious as a combination of softer signals
 
-## Tuned hybrid v2 thresholds
+## Tuned hybrid v3 thresholds
 
 ML thresholds:
 
-- `ml_score >= 0.93` -> `ml_high_risk_review`
-- `ml_score >= 0.50` -> `ml_monitoring_only`
+- `ml_score >= 0.93` -> direct high-risk review candidate
+- `0.50 <= ml_score < 0.93` -> monitoring or conditional escalation range
+- `0.30 <= ml_score < 0.50` -> low-to-mid risk range used only in a narrow escalation pocket
 
 Strong-rule conditions:
 
@@ -61,9 +62,9 @@ Strong-rule conditions:
 
 These rule cases were selected because they showed very high precision in the tuning analysis.
 
-## Tuned hybrid v2 policy
+## Tuned hybrid v3 policy
 
-### 1. Hard block / manual review
+### 1. Critical block / manual review
 
 Condition:
 
@@ -94,7 +95,22 @@ Reason:
 
 - either the rules are already strong or the ML score is very high
 
-### 3. Monitoring only
+### 3. Targeted escalation pockets
+
+Conditions:
+
+- `rule_risk_band = medium` and `0.50 <= ml_score < 0.80`
+- `rule_risk_band = low` and `0.30 <= ml_score < 0.50`
+
+Actions:
+
+- `step_up`
+
+Reason:
+
+- these pockets improved recall during tuning while keeping the operating target intact
+
+### 4. Monitoring only
 
 Condition:
 
@@ -104,7 +120,7 @@ Action:
 
 - `allow_with_monitoring`
 
-### 4. Allow
+### 5. Allow
 
 Condition:
 
@@ -139,13 +155,19 @@ The first hybrid evaluation should answer:
 
 ## Why this tuned version was chosen
 
-The earlier hybrid policy was too close to ML-only.
+The earlier hybrid policy was too close to ML-only and did not use rule evidence selectively enough.
 
-Hybrid v2 was selected because it better fits the current operating target:
+Hybrid v3 was selected because it best fits the current operating target:
 
 - review rate under `12%`
 - precision above `85%`
 - maximize recall subject to those constraints
+
+Final selected operating point:
+
+- review rate: `10.46%`
+- recall: `80.96%`
+- precision: `85.93%`
 
 ## Design principle
 

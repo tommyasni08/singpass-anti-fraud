@@ -1,6 +1,6 @@
 # Rules Specification
 
-Last updated: 11 April 2026
+Last updated: 12 April 2026
 
 ## Purpose
 
@@ -153,11 +153,11 @@ Recommended review threshold:
 
 This rule layer is not expected to solve the full login-risk problem.
 
-It should:
+It currently serves as:
 
 - catch the most interpretable suspicious access patterns
 - provide transparent reviewer-facing explanations
-- serve as a baseline to compare against the later ML model
+- serve as a baseline to compare against the ML model and the final hybrid policy
 
 ## Known limitations
 

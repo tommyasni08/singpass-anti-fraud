@@ -1,6 +1,6 @@
 # ML Evaluation Report
 
-Last updated: 11 April 2026
+Last updated: 12 April 2026
 
 ## Model setup
 
@@ -51,4 +51,5 @@ Last updated: 11 April 2026
 ## Notes
 
 - XGBoost is a better fit than the earlier hand-rolled linear baseline for this tabular fraud problem.
-- The next comparison step should align ML thresholds against the tuned rule review threshold rather than relying only on `0.5`.
+- The ML baseline is the strongest standalone detector in the current project.
+- The final project still keeps a tuned hybrid decision layer because operational precision and review-rate constraints matter.

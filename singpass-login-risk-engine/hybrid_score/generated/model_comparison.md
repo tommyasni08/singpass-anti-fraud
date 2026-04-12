@@ -1,6 +1,6 @@
 # Model Comparison
 
-Last updated: 11 April 2026
+Last updated: 12 April 2026
 
 ## Purpose
 
@@ -32,7 +32,7 @@ Operational definitions used for comparison:
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Rule-only | 4,276 | 10.81% | 3,427 | 78.05% | 80.14% |
 | ML-only (`0.5`) | 4,764 | 12.05% | 3,895 | 88.70% | 81.76% |
-| Hybrid | 4,760 | 12.04% | 3,892 | 88.64% | 81.76% |
+| Hybrid v3 | 4,137 | 10.46% | 3,555 | 80.96% | 85.93% |
 
 Additional ML-only reference points:
 
@@ -71,13 +71,13 @@ Interpretation:
 
 - on the current synthetic dataset, the XGBoost model captures more fraud than the rule layer without paying a precision penalty
 
-### 3. The current hybrid policy is only marginally different from ML-only
+### 3. Hybrid is now a distinct operating point
 
-Current hybrid result:
+Current hybrid v3 result:
 
-- review rate: `12.04%`
-- recall: `88.64%`
-- precision: `81.76%`
+- review rate: `10.46%`
+- recall: `80.96%`
+- precision: `85.93%`
 
 Current ML-only at `0.5`:
 
@@ -87,12 +87,13 @@ Current ML-only at `0.5`:
 
 Interpretation:
 
-- the current hybrid policy is very close to ML-only
-- this means the present policy layer is not yet adding much incremental value over the ML threshold by itself
+- ML-only still wins on raw recall
+- hybrid v3 trades some recall for a lower review rate and materially better precision
+- this makes hybrid a more defensible operational decision layer under the stated target
 
 ## Why hybrid is still worth keeping
 
-Even though the current metrics are almost identical to ML-only, hybrid still has a strong product and operational argument:
+Even though ML-only remains the strongest standalone detector on recall, hybrid still has the stronger product and operational argument:
 
 - rules provide explicit, reviewer-friendly justifications
 - rules are better for hard overrides in very clear cases
@@ -105,18 +106,18 @@ So the current conclusion is not:
 
 The current conclusion is:
 
-- the hybrid policy needs another tuning pass if it is meant to add measurable value beyond ML-only
+- hybrid should be treated as the final decision policy when precision and review-rate constraints matter
 
 ## Recommended choice right now
 
-If choosing by current metrics alone:
+If choosing by recall alone:
 
 - choose ML-only with a threshold around `0.5` to `0.7`
 
 If choosing by operational design for the portfolio:
 
-- choose hybrid as the target architecture
-- but acknowledge that the current hybrid policy still behaves almost the same as ML-only
+- choose hybrid v3 as the target architecture
+- acknowledge that ML-only remains the strongest standalone detector when review-rate and precision constraints are relaxed
 
 That is the most honest justification:
 
@@ -134,8 +135,8 @@ Among fraud rows:
 
 Interpretation:
 
-- the current hybrid is heavily driven by the ML layer
-- the rules are mostly reinforcing cases that ML already catches
+- hybrid is still heavily informed by the ML layer
+- the tuned rule layer now contributes more clearly through the final policy thresholds and hard-trigger pockets
 
 ## Decision
 
@@ -143,4 +144,4 @@ The justified portfolio position is:
 
 1. rules are useful and operationally interpretable
 2. ML is currently the strongest standalone detector
-3. hybrid remains the preferred architecture, but its policy should be tuned further before claiming it meaningfully outperforms ML-only
+3. hybrid v3 is the preferred architecture when the operating goal requires review rate under `12%` and precision above `85%`

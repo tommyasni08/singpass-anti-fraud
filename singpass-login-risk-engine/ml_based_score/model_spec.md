@@ -1,6 +1,6 @@
 # Model Specification
 
-Last updated: 11 April 2026
+Last updated: 12 April 2026
 
 ## Purpose
 
@@ -157,8 +157,8 @@ It is intended to answer:
 
 - does the current feature table contain enough predictive signal beyond the hard-coded rules?
 
-The next step after this baseline is:
+The current role of this baseline is:
 
 - compare rule-based score vs ML score
-- align ML thresholds with the rule review threshold
-- decide whether to combine them in a hybrid policy
+- support threshold analysis against review-rate targets
+- feed the final hybrid decision layer

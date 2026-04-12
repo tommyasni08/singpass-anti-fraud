@@ -1,12 +1,34 @@
 # ML-Based Score
 
-This folder contains the machine-learning baseline for the Singpass Login Risk Engine.
+This folder contains the machine-learning scoring layer for the Singpass Login Risk Engine.
+
+The current baseline uses XGBoost on the login feature table.
+
+## Purpose
+
+The ML layer captures suspicious combinations of signals that are too broad or too brittle to encode purely as fixed rules.
 
 ## Contents
 
-- `model_spec.md`: baseline ML design and modeling assumptions
-- `src/train_ml_baseline.py`: trains and evaluates the first ML scoring model
-- `generated/`: prediction outputs and evaluation report
+- `model_spec.md`: model design, split strategy, and feature scope
+- `src/train_ml_baseline.py`: XGBoost training and evaluation script
+- `generated/login_ml_scores.csv`: row-level ML predictions
+- `generated/ml_evaluation_report.md`: evaluation summary
+- `generated/feature_importance.csv`: feature importance export
+- `generated/xgb_model.json`: saved model artifact
+
+## Current status
+
+Current XGBoost baseline on the holdout split at `ml_score >= 0.5`:
+
+- review rate: `12.05%`
+- recall: `88.70%`
+- precision: `81.76%`
+
+Current model takeaway:
+
+- ML is the strongest standalone detector in the project
+- the model is driven mainly by approval latency, session pressure, and recent user rejection history
 
 ## Input dependency
 
@@ -18,25 +40,15 @@ singpass-login-risk-engine/feature_engineering/generated/login_features.csv
 
 ## How to run
 
-From the repository root:
+From the repository root, using the project virtual environment:
 
 ```bash
 python singpass-login-risk-engine/ml_based_score/src/train_ml_baseline.py
 ```
 
-Preferred runtime:
+## Output location
 
-- activate the project virtual environment first
-- or invoke the script with the virtual-environment interpreter directly
-
-## Current outputs
-
-- `login_ml_scores.csv`
-- `ml_evaluation_report.md`
-- `feature_importance.csv`
-- `xgb_model.json`
-
-Both outputs are written to:
+Outputs are written to:
 
 ```text
 singpass-login-risk-engine/ml_based_score/generated/
