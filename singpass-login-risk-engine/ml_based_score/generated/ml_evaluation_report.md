@@ -1,13 +1,13 @@
 # ML Evaluation Report
 
-Last updated: 12 April 2026
+Last updated: 11 April 2026
 
 ## Model setup
 
 - baseline model: XGBoost classifier
 - runtime environment: Python 3.11 project virtual environment
 - split strategy: earliest 80% train, latest 20% evaluation by event timestamp
-- categorical handling: one-hot encoding
+- categorical handling: sklearn preprocessing pipeline with one-hot encoding
 - class weighting: `scale_pos_weight` derived from train fraud rate
 
 ## Split summary
@@ -31,25 +31,27 @@ Last updated: 12 April 2026
 
 ## Top feature importance
 
-- `approval_latency_seconds`: 0.418434
-- `country_SG`: 0.061630
-- `session_event_count_before_login`: 0.026853
-- `session_rejected_login_events_before_login`: 0.022860
-- `login_method_face_verification`: 0.021693
-- `user_prior_rejected_login_count_7d`: 0.013980
-- `service_supports_signing_flag`: 0.013845
-- `service_supports_myinfo_flag`: 0.013659
-- `trust_status_revoked`: 0.013299
-- `service_risk_tier_low`: 0.013014
+- `num__approval_latency_seconds`: 0.418434
+- `cat__country_SG`: 0.061630
+- `num__session_event_count_before_login`: 0.026853
+- `num__session_rejected_login_events_before_login`: 0.022860
+- `cat__login_method_face_verification`: 0.021693
+- `num__user_prior_rejected_login_count_7d`: 0.013980
+- `num__service_supports_signing_flag`: 0.013845
+- `num__service_supports_myinfo_flag`: 0.013659
+- `cat__trust_status_revoked`: 0.013299
+- `cat__service_risk_tier_low`: 0.013014
 
 ## Outputs
 
 - `login_ml_scores.csv`
 - `feature_importance.csv`
 - `xgb_model.json`
+- `serving_pipeline.joblib`
+- `serving_metadata.json`
 
 ## Notes
 
 - XGBoost is a better fit than the earlier hand-rolled linear baseline for this tabular fraud problem.
-- The ML baseline is the strongest standalone detector in the current project.
-- The final project still keeps a tuned hybrid decision layer because operational precision and review-rate constraints matter.
+- Project 1 now uses the same preprocessing-pipeline pattern as project 2 so training and API inference stay consistent.
+- The next comparison step should align ML thresholds against the tuned rule review threshold rather than relying only on `0.5`.

@@ -3,8 +3,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import joblib
 import pandas as pd
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
 from sklearn.metrics import accuracy_score, precision_score, recall_score
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder
 from xgboost import XGBClassifier
 
 
@@ -69,37 +74,25 @@ def _metrics(y_true: pd.Series, scores: pd.Series, threshold: float) -> dict[str
     }
 
 
-def main() -> None:
-    repo_root = Path(__file__).resolve().parents[3]
-    feature_path = repo_root / "singpass-login-risk-engine" / "feature_engineering" / "generated" / "login_features.csv"
-    output_dir = repo_root / "singpass-login-risk-engine" / "ml_based_score" / "generated"
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    df = pd.read_csv(feature_path)
-    df = df.sort_values(["event_timestamp", "event_id"]).reset_index(drop=True)
-
-    numeric_df = df[NUMERIC_COLUMNS].copy()
-    numeric_df = numeric_df.fillna(
-        {
-            "approval_latency_seconds": 0.0,
-            "days_since_last_successful_login": 0.0,
-        }
+def _build_pipeline(scale_pos_weight: float) -> Pipeline:
+    numeric_transformer = Pipeline(
+        steps=[
+            ("imputer", SimpleImputer(strategy="constant", fill_value=0)),
+        ]
+    )
+    categorical_transformer = Pipeline(
+        steps=[
+            ("imputer", SimpleImputer(strategy="constant", fill_value="unknown")),
+            ("onehot", OneHotEncoder(handle_unknown="ignore")),
+        ]
     )
 
-    categorical_df = df[CATEGORICAL_COLUMNS].fillna("unknown").astype(str)
-    encoded_cat = pd.get_dummies(categorical_df, prefix=CATEGORICAL_COLUMNS, dtype=int)
-
-    model_df = pd.concat([numeric_df, encoded_cat], axis=1)
-    target = df["target_login_fraud_flag"].astype(int)
-
-    split_idx = int(len(df) * 0.8)
-    x_train = model_df.iloc[:split_idx]
-    x_eval = model_df.iloc[split_idx:]
-    y_train = target.iloc[:split_idx]
-    y_eval = target.iloc[split_idx:]
-
-    fraud_rate = float(y_train.mean())
-    scale_pos_weight = (1.0 - fraud_rate) / fraud_rate if fraud_rate > 0 else 1.0
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ("num", numeric_transformer, NUMERIC_COLUMNS),
+            ("cat", categorical_transformer, CATEGORICAL_COLUMNS),
+        ]
+    )
 
     model = XGBClassifier(
         n_estimators=250,
@@ -113,10 +106,40 @@ def main() -> None:
         random_state=42,
         n_jobs=4,
     )
-    model.fit(x_train, y_train)
 
-    train_scores = pd.Series(model.predict_proba(x_train)[:, 1], index=x_train.index)
-    eval_scores = pd.Series(model.predict_proba(x_eval)[:, 1], index=x_eval.index)
+    return Pipeline(
+        steps=[
+            ("preprocessor", preprocessor),
+            ("model", model),
+        ]
+    )
+
+
+def main() -> None:
+    repo_root = Path(__file__).resolve().parents[3]
+    feature_path = repo_root / "singpass-login-risk-engine" / "feature_engineering" / "generated" / "login_features.csv"
+    output_dir = repo_root / "singpass-login-risk-engine" / "ml_based_score" / "generated"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    df = pd.read_csv(feature_path)
+    df = df.sort_values(["event_timestamp", "event_id"]).reset_index(drop=True)
+    target = df["target_login_fraud_flag"].astype(int)
+
+    split_idx = int(len(df) * 0.8)
+    feature_df = df[NUMERIC_COLUMNS + CATEGORICAL_COLUMNS].copy()
+    x_train = feature_df.iloc[:split_idx]
+    x_eval = feature_df.iloc[split_idx:]
+    y_train = target.iloc[:split_idx]
+    y_eval = target.iloc[split_idx:]
+
+    fraud_rate = float(y_train.mean())
+    scale_pos_weight = (1.0 - fraud_rate) / fraud_rate if fraud_rate > 0 else 1.0
+
+    pipeline = _build_pipeline(scale_pos_weight=scale_pos_weight)
+    pipeline.fit(x_train, y_train)
+
+    train_scores = pd.Series(pipeline.predict_proba(x_train)[:, 1], index=x_train.index)
+    eval_scores = pd.Series(pipeline.predict_proba(x_eval)[:, 1], index=x_eval.index)
 
     thresholds = [0.3, 0.5, 0.7]
     train_metric_rows = [_metrics(y_train, train_scores, threshold) for threshold in thresholds]
@@ -136,12 +159,24 @@ def main() -> None:
 
     importance_df = pd.DataFrame(
         {
-            "feature_name": x_train.columns,
-            "importance_gain": model.feature_importances_,
+            "feature_name": pipeline.named_steps["preprocessor"].get_feature_names_out(),
+            "importance_gain": pipeline.named_steps["model"].feature_importances_,
         }
     ).sort_values("importance_gain", ascending=False)
     importance_df.to_csv(output_dir / "feature_importance.csv", index=False)
-    model.save_model(output_dir / "xgb_model.json")
+    pipeline.named_steps["model"].save_model(output_dir / "xgb_model.json")
+    joblib.dump(pipeline, output_dir / "serving_pipeline.joblib")
+
+    serving_metadata = {
+        "scoring_name": "login_score",
+        "model_type": "xgboost_pipeline",
+        "pipeline_artifact": "serving_pipeline.joblib",
+        "numeric_features": NUMERIC_COLUMNS,
+        "categorical_features": CATEGORICAL_COLUMNS,
+        "default_ml_threshold": 0.5,
+        "hybrid_policy_version": "v3",
+    }
+    (output_dir / "serving_metadata.json").write_text(json.dumps(serving_metadata, indent=2))
 
     report = [
         "# ML Evaluation Report",
@@ -153,7 +188,7 @@ def main() -> None:
         "- baseline model: XGBoost classifier",
         "- runtime environment: Python 3.11 project virtual environment",
         "- split strategy: earliest 80% train, latest 20% evaluation by event timestamp",
-        "- categorical handling: one-hot encoding",
+        "- categorical handling: sklearn preprocessing pipeline with one-hot encoding",
         "- class weighting: `scale_pos_weight` derived from train fraud rate",
         "",
         "## Split summary",
@@ -193,10 +228,13 @@ def main() -> None:
             "- `login_ml_scores.csv`",
             "- `feature_importance.csv`",
             "- `xgb_model.json`",
+            "- `serving_pipeline.joblib`",
+            "- `serving_metadata.json`",
             "",
             "## Notes",
             "",
             "- XGBoost is a better fit than the earlier hand-rolled linear baseline for this tabular fraud problem.",
+            "- Project 1 now uses the same preprocessing-pipeline pattern as project 2 so training and API inference stay consistent.",
             "- The next comparison step should align ML thresholds against the tuned rule review threshold rather than relying only on `0.5`.",
         ]
     )

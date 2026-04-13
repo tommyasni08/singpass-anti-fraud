@@ -1,0 +1,41 @@
+{
+  "scoring_name": "session_score",
+  "model_type": "xgboost_pipeline",
+  "pipeline_artifact": "serving_pipeline.joblib",
+  "numeric_features": [
+    "post_login_duration_seconds",
+    "distinct_service_count_in_session",
+    "time_to_first_post_login_event_seconds",
+    "time_to_first_service_switch_seconds",
+    "time_to_first_service_switch_missing_flag",
+    "max_event_burst_5m",
+    "service_switch_count",
+    "service_used_by_user_last_30d_flag",
+    "service_usage_count_by_user_30d",
+    "rare_service_access_flag",
+    "high_risk_service_access_flag",
+    "user_prior_monitored_session_count_30d",
+    "user_prior_sensitive_session_count_30d",
+    "user_prior_distinct_services_30d",
+    "user_prior_avg_post_login_event_count_30d",
+    "user_prior_avg_session_duration_seconds_30d",
+    "session_event_count_deviation_from_user_avg",
+    "session_event_count_deviation_missing_flag",
+    "session_duration_deviation_from_user_avg",
+    "session_duration_deviation_missing_flag",
+    "login_hour_of_day",
+    "recent_lifecycle_change_before_session_flag",
+    "recent_contact_detail_update_before_session_flag",
+    "recent_app_reinstall_before_session_flag"
+  ],
+  "categorical_features": [
+    "service_sector_type",
+    "service_risk_tier",
+    "login_method",
+    "login_country",
+    "trust_status"
+  ],
+  "default_ml_threshold": 0.5,
+  "hybrid_policy_version": "v1",
+  "hybrid_ml_review_threshold": 0.3
+}

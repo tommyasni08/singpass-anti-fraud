@@ -46,3 +46,4 @@ Last updated: 12 April 2026
 
 - This baseline intentionally excludes the clearest direct post-login completion flags already covered by the rule layer.
 - The purpose of this model is to test whether broader session-shape and behavioural features add value beyond explicit containment rules.
+- `serving_pipeline.joblib` is exported for API inference so preprocessing and model scoring stay consistent.

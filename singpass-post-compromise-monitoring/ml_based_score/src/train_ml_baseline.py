@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
+import joblib
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
@@ -191,6 +193,19 @@ def main() -> None:
     ).sort_values("importance", ascending=False)
     importance_df.to_csv(output_dir / "feature_importance.csv", index=False)
     model.save_model(output_dir / "xgb_model.json")
+    joblib.dump(pipeline, output_dir / "serving_pipeline.joblib")
+
+    serving_metadata = {
+        "scoring_name": "session_score",
+        "model_type": "xgboost_pipeline",
+        "pipeline_artifact": "serving_pipeline.joblib",
+        "numeric_features": NUMERIC_FEATURES,
+        "categorical_features": CATEGORICAL_FEATURES,
+        "default_ml_threshold": 0.5,
+        "hybrid_policy_version": "v1",
+        "hybrid_ml_review_threshold": 0.3,
+    }
+    (output_dir / "serving_metadata.json").write_text(json.dumps(serving_metadata, indent=2))
 
     report_lines = [
         "# ML Evaluation Report",
@@ -230,6 +245,7 @@ def main() -> None:
             "",
             "- This baseline intentionally excludes the clearest direct post-login completion flags already covered by the rule layer.",
             "- The purpose of this model is to test whether broader session-shape and behavioural features add value beyond explicit containment rules.",
+            "- `serving_pipeline.joblib` is exported for API inference so preprocessing and model scoring stay consistent.",
         ]
     )
 
