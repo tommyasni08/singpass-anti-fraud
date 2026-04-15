@@ -2,7 +2,7 @@
 
 This folder contains the machine-learning scoring layer for the Singpass Login Risk Engine.
 
-The current baseline uses XGBoost on the login feature table.
+The current baseline uses XGBoost on the login feature table, wrapped in an sklearn preprocessing pipeline for serving consistency.
 
 ## Purpose
 
@@ -16,6 +16,8 @@ The ML layer captures suspicious combinations of signals that are too broad or t
 - `generated/ml_evaluation_report.md`: evaluation summary
 - `generated/feature_importance.csv`: feature importance export
 - `generated/xgb_model.json`: saved model artifact
+- `generated/serving_pipeline.joblib`: saved preprocessing-plus-model artifact for API inference
+- `generated/serving_metadata.json`: expected feature groups and serving metadata
 
 ## Current status
 
@@ -29,6 +31,7 @@ Current model takeaway:
 
 - ML is the strongest standalone detector in the project
 - the model is driven mainly by approval latency, session pressure, and recent user rejection history
+- preprocessing is now packaged with the model so API inference uses the same transform path as training
 
 ## Input dependency
 

@@ -1,6 +1,6 @@
 # Rule Quality Report
 
-Last updated: 12 April 2026
+Last updated: 11 April 2026
 
 ## Dataset summary
 
@@ -37,5 +37,5 @@ Last updated: 12 April 2026
 
 - The rule layer is intended to catch the clearest suspicious access patterns, not every fraud case.
 - High precision on specific rules is more important than broad coverage for the first baseline.
-- The ML layer absorbs weaker, multi-feature patterns that do not warrant hard rules on their own.
+- The ML layer should later absorb weaker, multi-feature patterns that do not warrant hard rules on their own.
 - For operations, `score >= 3` is the more realistic review threshold than `any hit`.

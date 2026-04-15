@@ -1,10 +1,10 @@
 # Hybrid Evaluation Report
 
-Last updated: 12 April 2026
+Last updated: 11 April 2026
 
 ## Dataset summary
 
-- hybrid policy version: v3
+- hybrid policy version: v2
 - operating target: review rate under 12%, maximize recall, precision above 85%
 - total rows: 39,538
 - fraud rows: 4,391
@@ -55,5 +55,5 @@ Last updated: 12 April 2026
 ## Notes
 
 - The hybrid layer is a policy combiner, not an averaged score.
-- Hybrid v3 adds a small second-round escalation on selected medium-risk ML pockets while staying inside the operating target.
-- This version was chosen because it improves recall over v2 while keeping review rate under 12% and precision above 85%.
+- Hybrid v2 reviews a login when either the ML score is very high (`>= 0.93`) or the case matches a small set of high-confidence rule patterns.
+- This version was chosen because it meets the current operating target more closely than the earlier hybrid policy.

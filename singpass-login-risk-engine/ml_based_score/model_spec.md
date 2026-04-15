@@ -1,6 +1,6 @@
 # Model Specification
 
-Last updated: 12 April 2026
+Last updated: 15 April 2026
 
 ## Purpose
 
@@ -47,8 +47,9 @@ Why this is the better choice here:
 - the tuned rule layer already suggests that stacked conditions matter
 - gradient-boosted trees are a strong default for this type of data
 
-Scikit-learn still matters in this setup for:
+Scikit-learn matters in this setup for:
 
+- preprocessing pipeline management
 - metrics
 - future benchmark models such as logistic regression
 
@@ -75,7 +76,7 @@ Why:
 The first baseline uses:
 
 - core numeric features
-- selected categorical features after one-hot encoding
+- selected categorical features after pipeline-based one-hot encoding
 
 Included:
 
@@ -122,6 +123,24 @@ Reason:
 
 - the first baseline should remain interpretable and operationally lightweight
 
+## Preprocessing and serving design
+
+Project 1 now uses the same production-friendly pattern as project 2:
+
+- `ColumnTransformer`
+- `SimpleImputer`
+- `OneHotEncoder`
+- sklearn `Pipeline`
+- XGBoost classifier
+
+Why this was adopted:
+
+- training and API inference should share the same preprocessing contract
+- serving should not rely on manually rebuilding dummy columns
+- the ML artifact should be loadable directly by the scoring API
+
+This is cleaner than the earlier MVP path that used manual `pandas.get_dummies`.
+
 ## Output
 
 The ML baseline should produce:
@@ -137,6 +156,12 @@ Recommended output columns:
 - `ml_score`
 - `ml_predicted_flag`
 - `split_name`
+
+Serving artifacts:
+
+- `xgb_model.json`
+- `serving_pipeline.joblib`
+- `serving_metadata.json`
 
 ## Evaluation
 
