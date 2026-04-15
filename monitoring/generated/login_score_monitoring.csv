@@ -1,0 +1,9 @@
+scoring_name,metric_group,metric_key,metric_value,metric_rate,fraud_rows,fraud_rate_within_group
+login_score,action_distribution,allow,34687,87.73%,457,1.32%
+login_score,action_distribution,allow_with_monitoring,714,1.81%,379,53.08%
+login_score,action_distribution,block_or_manual_review,1734,4.39%,1722,99.31%
+login_score,action_distribution,step_up,102,0.26%,50,49.02%
+login_score,action_distribution,step_up_or_manual_review,2301,5.82%,1783,77.49%
+login_score,ml_score_band,low,34629,87.58%,,
+login_score,ml_score_band,medium,170,0.43%,,
+login_score,ml_score_band,high,4739,11.99%,,

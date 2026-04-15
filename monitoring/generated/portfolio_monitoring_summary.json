@@ -1,0 +1,26 @@
+{
+  "login_score": {
+    "total_rows": 39538,
+    "fraud_rows": 4391,
+    "review_rows": 4137,
+    "review_rate": "10.46%",
+    "recall": "80.96%",
+    "precision": "85.93%",
+    "approval_latency_missing_rows": 0,
+    "approval_latency_missing_rate": "0.00%",
+    "days_since_last_success_missing_rows": 5000,
+    "days_since_last_success_missing_rate": "12.65%"
+  },
+  "session_score": {
+    "total_rows": 38834,
+    "fraud_rows": 6757,
+    "review_rows": 7022,
+    "review_rate": "18.08%",
+    "recall": "99.48%",
+    "precision": "95.73%",
+    "time_to_first_sensitive_missing_rows": 28121,
+    "time_to_first_sensitive_missing_rate": "72.41%",
+    "time_to_first_service_switch_missing_rows": 31716,
+    "time_to_first_service_switch_missing_rate": "81.67%"
+  }
+}

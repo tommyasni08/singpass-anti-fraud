@@ -1,0 +1,8 @@
+scoring_name,metric_group,metric_key,metric_value,metric_rate,fraud_rows,fraud_rate_within_group
+session_score,action_distribution,allow,31812,81.92%,35,0.11%
+session_score,action_distribution,manual_review,1969,5.07%,1969,100.00%
+session_score,action_distribution,restrict_or_manual_review,3036,7.82%,3036,100.00%
+session_score,action_distribution,review_due_to_behavioral_risk,2017,5.19%,1717,85.13%
+session_score,ml_score_band,low,32760,84.36%,,
+session_score,ml_score_band,medium,476,1.23%,,
+session_score,ml_score_band,high,5598,14.42%,,
