@@ -1,0 +1,12 @@
+{
+  "target": "login_score",
+  "started_at_utc": "2026-04-15T10:51:57+00:00",
+  "completed_at_utc": "2026-04-15T10:52:11+00:00",
+  "python_executable": "/Users/tommyasni08/Documents/Projects/3.11_tasni_venv/bin/python",
+  "steps": [
+    "login_feature_engineering",
+    "login_rule_scoring",
+    "login_ml_training",
+    "login_hybrid_scoring"
+  ]
+}
