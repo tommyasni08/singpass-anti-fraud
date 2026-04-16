@@ -9,8 +9,13 @@ import streamlit as st
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 MONITORING_DIR = REPO_ROOT / "monitoring" / "generated"
-LOGIN_PATH = MONITORING_DIR / "login_score_monitoring.csv"
-SESSION_PATH = MONITORING_DIR / "session_score_monitoring.csv"
+
+LOGIN_OPS_PATH = MONITORING_DIR / "login_score_ops.csv"
+LOGIN_METRICS_PATH = MONITORING_DIR / "login_score_metrics.csv"
+LOGIN_REVIEW_PATH = MONITORING_DIR / "login_score_review_cases.csv"
+SESSION_OPS_PATH = MONITORING_DIR / "session_score_ops.csv"
+SESSION_METRICS_PATH = MONITORING_DIR / "session_score_metrics.csv"
+SESSION_REVIEW_PATH = MONITORING_DIR / "session_score_review_cases.csv"
 REPORT_PATH = MONITORING_DIR / "portfolio_monitoring_report.md"
 MANIFEST_PATH = MONITORING_DIR / "last_monitoring_manifest.json"
 SUMMARY_PATH = MONITORING_DIR / "portfolio_monitoring_summary.json"
@@ -20,7 +25,7 @@ def _load_csv(path: Path) -> pd.DataFrame:
     return pd.read_csv(path)
 
 
-def _load_manifest(path: Path) -> dict:
+def _load_json(path: Path) -> dict:
     return json.loads(path.read_text())
 
 
@@ -28,19 +33,6 @@ def _safe_int(value) -> int:
     if pd.isna(value) or value == "":
         return 0
     return int(float(value))
-
-
-def _safe_str(value) -> str:
-    if pd.isna(value):
-        return ""
-    return str(value)
-
-
-def _metric_value(df: pd.DataFrame, metric_group: str, metric_key: str, column: str) -> str:
-    filtered = df[(df["metric_group"] == metric_group) & (df["metric_key"] == metric_key)]
-    if filtered.empty:
-        return "n/a"
-    return _safe_str(filtered.iloc[0][column])
 
 
 def _action_df(df: pd.DataFrame) -> pd.DataFrame:
@@ -57,6 +49,20 @@ def _action_df(df: pd.DataFrame) -> pd.DataFrame:
     )[["action", "rows", "row_rate", "fraud_rows", "fraud_rate_in_action"]]
 
 
+def _scenario_df(df: pd.DataFrame) -> pd.DataFrame:
+    filtered = df[df["metric_group"] == "reviewed_scenario_mix"].copy()
+    filtered["metric_value"] = filtered["metric_value"].apply(_safe_int)
+    filtered["fraud_rows"] = filtered["fraud_rows"].apply(_safe_int)
+    return filtered.rename(
+        columns={
+            "metric_key": "scenario",
+            "metric_value": "review_rows",
+            "metric_rate": "review_share",
+            "fraud_rate_within_group": "fraud_rate_in_reviewed_group",
+        }
+    )[["scenario", "review_rows", "review_share", "fraud_rows", "fraud_rate_in_reviewed_group"]]
+
+
 def _score_band_df(df: pd.DataFrame) -> pd.DataFrame:
     filtered = df[df["metric_group"] == "ml_score_band"].copy()
     filtered["metric_value"] = filtered["metric_value"].apply(_safe_int)
@@ -69,40 +75,92 @@ def _score_band_df(df: pd.DataFrame) -> pd.DataFrame:
     )[["score_band", "rows", "row_rate"]]
 
 
-def _render_score_panel(title: str, df: pd.DataFrame, total_rows: str, review_rate: str, recall: str, precision: str):
+def _render_ops_view(
+    title: str,
+    ops_df: pd.DataFrame,
+    review_df: pd.DataFrame,
+    summary: dict,
+    entity_label: str,
+):
     st.subheader(title)
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Total Rows", total_rows)
-    col2.metric("Review Rate", review_rate)
-    col3.metric("Recall", recall)
-    col4.metric("Precision", precision)
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Total Rows", f"{summary['total_rows']:,}")
+    col2.metric("Review Rows", f"{summary['review_rows']:,}")
+    col3.metric("Review Rate", summary["review_rate"])
 
     st.markdown("**Action Distribution**")
-    action_df = _action_df(df)
+    action_df = _action_df(ops_df)
     st.bar_chart(action_df.set_index("action")["rows"])
     st.dataframe(action_df, use_container_width=True)
 
+    st.markdown("**Reviewed Scenario Mix**")
+    scenario_df = _scenario_df(ops_df)
+    if not scenario_df.empty:
+        st.bar_chart(scenario_df.set_index("scenario")["review_rows"])
+        st.dataframe(scenario_df, use_container_width=True)
+    else:
+        st.info("No reviewed scenario mix is available.")
+
+    st.markdown(f"**Top Reviewed {entity_label}**")
+    st.dataframe(review_df, use_container_width=True)
+
+
+def _render_metrics_view(
+    title: str,
+    metrics_df: pd.DataFrame,
+    summary: dict,
+    extra_metrics: list[tuple[str, str]],
+):
+    st.subheader(title)
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Recall", summary["recall"])
+    col2.metric("Precision", summary["precision"])
+    col3.metric("Total Rows", f"{summary['total_rows']:,}")
+
+    extra_cols = st.columns(len(extra_metrics))
+    for col, (label, value) in zip(extra_cols, extra_metrics):
+        col.metric(label, value)
+
     st.markdown("**ML Score Band Distribution**")
-    band_df = _score_band_df(df)
+    band_df = _score_band_df(metrics_df)
     st.bar_chart(band_df.set_index("score_band")["rows"])
     st.dataframe(band_df, use_container_width=True)
+
+    st.markdown("**Action Distribution from Metrics Surface**")
+    action_df = _action_df(metrics_df)
+    st.dataframe(action_df, use_container_width=True)
 
 
 st.set_page_config(page_title="Singpass Anti-Fraud Monitoring", layout="wide")
 st.title("Singpass Anti-Fraud Monitoring Dashboard")
 st.caption("Operational dashboard built from the latest generated monitoring artifacts.")
 
-missing_paths = [path for path in [LOGIN_PATH, SESSION_PATH, REPORT_PATH, MANIFEST_PATH, SUMMARY_PATH] if not path.exists()]
+required_paths = [
+    LOGIN_OPS_PATH,
+    LOGIN_METRICS_PATH,
+    LOGIN_REVIEW_PATH,
+    SESSION_OPS_PATH,
+    SESSION_METRICS_PATH,
+    SESSION_REVIEW_PATH,
+    REPORT_PATH,
+    MANIFEST_PATH,
+    SUMMARY_PATH,
+]
+missing_paths = [path for path in required_paths if not path.exists()]
 if missing_paths:
     st.error("Monitoring outputs are missing. Run the monitoring report generator first.")
     for path in missing_paths:
         st.code(str(path))
     st.stop()
 
-login_df = _load_csv(LOGIN_PATH)
-session_df = _load_csv(SESSION_PATH)
-manifest = _load_manifest(MANIFEST_PATH)
-summary = _load_manifest(SUMMARY_PATH)
+login_ops_df = _load_csv(LOGIN_OPS_PATH)
+login_metrics_df = _load_csv(LOGIN_METRICS_PATH)
+login_review_df = _load_csv(LOGIN_REVIEW_PATH)
+session_ops_df = _load_csv(SESSION_OPS_PATH)
+session_metrics_df = _load_csv(SESSION_METRICS_PATH)
+session_review_df = _load_csv(SESSION_REVIEW_PATH)
+manifest = _load_json(MANIFEST_PATH)
+summary = _load_json(SUMMARY_PATH)
 report_text = REPORT_PATH.read_text()
 
 overview1, overview2 = st.columns([2, 1])
@@ -117,48 +175,68 @@ with overview2:
     st.write("- `login_score`: live login prevention")
     st.write("- `session_score`: post-login containment")
 
-tabs = st.tabs(["Overview", "Login Score", "Session Score", "Report"])
+tabs = st.tabs(["Ops View", "Metrics View", "Report"])
 
 with tabs[0]:
-    c1, c2 = st.columns(2)
-    with c1:
-        _render_score_panel(
-            "Login Score Snapshot",
-            login_df,
-            total_rows=f"{summary['login_score']['total_rows']:,}",
-            review_rate=summary["login_score"]["review_rate"],
-            recall=summary["login_score"]["recall"],
-            precision=summary["login_score"]["precision"],
+    st.markdown("## Ops View")
+    st.caption("Operational workload, review queue composition, and drilldowns into reviewed items.")
+    col1, col2 = st.columns(2)
+    with col1:
+        _render_ops_view(
+            "Login Ops",
+            login_ops_df,
+            login_review_df,
+            summary["login_score"]["ops"],
+            entity_label="Login Cases",
         )
-    with c2:
-        _render_score_panel(
-            "Session Score Snapshot",
-            session_df,
-            total_rows=f"{summary['session_score']['total_rows']:,}",
-            review_rate=summary["session_score"]["review_rate"],
-            recall=summary["session_score"]["recall"],
-            precision=summary["session_score"]["precision"],
+    with col2:
+        _render_ops_view(
+            "Session Ops",
+            session_ops_df,
+            session_review_df,
+            summary["session_score"]["ops"],
+            entity_label="Session Cases",
         )
 
 with tabs[1]:
-    _render_score_panel(
-        "Login Score",
-        login_df,
-        total_rows=f"{summary['login_score']['total_rows']:,}",
-        review_rate=summary["login_score"]["review_rate"],
-        recall=summary["login_score"]["recall"],
-        precision=summary["login_score"]["precision"],
-    )
+    st.markdown("## Metrics View")
+    st.caption("Model performance, score distribution, and data-quality monitoring for parameter tuning.")
+    col1, col2 = st.columns(2)
+    with col1:
+        _render_metrics_view(
+            "Login Metrics",
+            login_metrics_df,
+            {
+                **summary["login_score"]["ops"],
+                **summary["login_score"]["metrics"],
+            },
+            extra_metrics=[
+                ("Approval Latency Missing", summary["login_score"]["metrics"]["approval_latency_missing_rate"]),
+                (
+                    "Last Success Missing",
+                    summary["login_score"]["metrics"]["days_since_last_success_missing_rate"],
+                ),
+            ],
+        )
+    with col2:
+        _render_metrics_view(
+            "Session Metrics",
+            session_metrics_df,
+            {
+                **summary["session_score"]["ops"],
+                **summary["session_score"]["metrics"],
+            },
+            extra_metrics=[
+                (
+                    "First Sensitive Missing",
+                    summary["session_score"]["metrics"]["time_to_first_sensitive_missing_rate"],
+                ),
+                (
+                    "First Switch Missing",
+                    summary["session_score"]["metrics"]["time_to_first_service_switch_missing_rate"],
+                ),
+            ],
+        )
 
 with tabs[2]:
-    _render_score_panel(
-        "Session Score",
-        session_df,
-        total_rows=f"{summary['session_score']['total_rows']:,}",
-        review_rate=summary["session_score"]["review_rate"],
-        recall=summary["session_score"]["recall"],
-        precision=summary["session_score"]["precision"],
-    )
-
-with tabs[3]:
     st.markdown(report_text)

@@ -1,0 +1,11 @@
+scoring_name,metric_group,metric_key,metric_value,metric_rate,fraud_rows,fraud_rate_within_group
+session_score,action_distribution,allow,31812,81.92%,35,0.11%
+session_score,action_distribution,manual_review,1969,5.07%,1969,100.00%
+session_score,action_distribution,restrict_or_manual_review,3036,7.82%,3036,100.00%
+session_score,action_distribution,review_due_to_behavioral_risk,2017,5.19%,1717,85.13%
+session_score,reviewed_scenario_mix,social_engineering_or_malicious_approval,2436,34.69%,2436,100.00%
+session_score,reviewed_scenario_mix,remote_control_or_device_compromise_access,1606,22.87%,1606,100.00%
+session_score,reviewed_scenario_mix,relinquished_account_access_and_operation,1556,22.16%,1556,100.00%
+session_score,reviewed_scenario_mix,suspicious_downstream_misuse_after_successful_access,1124,16.01%,1124,100.00%
+session_score,reviewed_scenario_mix,normal_returning_login_and_normal_usage,283,4.03%,0,0.00%
+session_score,reviewed_scenario_mix,legitimate_first_time_or_infrequent_service_usage,17,0.24%,0,0.00%

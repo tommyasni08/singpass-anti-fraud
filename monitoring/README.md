@@ -14,17 +14,20 @@ Its purpose is to turn scored outputs into dashboard-ready summaries.
 
 ## Current scope
 
-Version 1 focuses on static monitoring artifacts generated from the latest portfolio outputs:
+Version 1 now splits monitoring into two views generated from the latest portfolio outputs:
 
-- login-score operational summary
-- session-score operational summary
-- action distribution
-- review rate
-- recall and precision at the selected operating point
-- simple score-band distribution
-- basic feature-table data quality checks
+- `ops view`
+  - review volume
+  - action distribution
+  - reviewed-scenario mix
+  - top reviewed login and session cases
+- `metrics view`
+  - recall
+  - precision
+  - ML score-band distribution
+  - data-quality missingness indicators
 
-This is the correct first step before adding a live dashboard.
+This is the correct first production-style monitoring split for the repository.
 
 ## Entrypoint
 
@@ -37,7 +40,7 @@ python monitoring/src/generate_monitoring_reports.py
 Or using the project virtual environment explicitly:
 
 ```bash
-../3.11_tasni_venv/bin/python monitoring/src/generate_monitoring_reports.py
+./singpass_anti_fraud_venv/bin/python monitoring/src/generate_monitoring_reports.py
 ```
 
 ## Outputs
@@ -52,8 +55,12 @@ Current artifacts:
 
 - `portfolio_monitoring_report.md`
 - `portfolio_monitoring_summary.json`
-- `login_score_monitoring.csv`
-- `session_score_monitoring.csv`
+- `login_score_ops.csv`
+- `login_score_metrics.csv`
+- `login_score_review_cases.csv`
+- `session_score_ops.csv`
+- `session_score_metrics.csv`
+- `session_score_review_cases.csv`
 - `last_monitoring_manifest.json`
 
 ## Intended future extension
@@ -64,4 +71,5 @@ This layer is designed so a later scope can add:
 - score drift tracking over time
 - feature null-rate drift
 - review queue trend charts
-- a Streamlit or web dashboard
+- deeper review-queue drilldowns
+- time-series ops and metrics trends

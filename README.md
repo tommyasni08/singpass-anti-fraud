@@ -11,15 +11,19 @@ The work is intentionally structured to resemble a real fraud program rather tha
 
 ## Repository structure
 
-- [initial_research](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/initial_research/initial_research.md)
+- [initial_research](initial_research/initial_research.md)
   - product and abuse-context research used to scope the portfolio
-- [pre_requisites](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/pre_requisites)
+- [pre_requisites](pre_requisites)
   - shared event taxonomy, schema design, backend design, scenario design, and portfolio architecture
-- [data](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/data/README.md)
+- [data](data/README.md)
   - shared synthetic data generator and generated backend tables
-- [singpass-login-risk-engine](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/singpass-login-risk-engine/README.md)
+- [pipelines](pipelines/README.md)
+  - orchestration jobs for rebuilding data, features, models, and hybrid outputs
+- [monitoring](monitoring/README.md)
+  - dashboard-ready operational summaries for scored outputs
+- [singpass-login-risk-engine](singpass-login-risk-engine/README.md)
   - project 1: live login risk detection
-- [singpass-post-compromise-monitoring](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/singpass-post-compromise-monitoring/README.md)
+- [singpass-post-compromise-monitoring](singpass-post-compromise-monitoring/README.md)
   - project 2: post-login misuse detection and damage containment
 
 ## Portfolio design
@@ -68,8 +72,8 @@ Project 1 is implemented as a full scoring pipeline:
 
 Project 1 output:
 
-- [project README](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/singpass-login-risk-engine/README.md)
-- [project plan](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/singpass-login-risk-engine/project_plan.md)
+- [project README](singpass-login-risk-engine/README.md)
+- [project plan](singpass-login-risk-engine/project_plan.md)
 
 Current final project-1 comparison:
 
@@ -97,8 +101,8 @@ Project 2 is implemented as a full session-level monitoring pipeline:
 
 Project 2 outputs:
 
-- [project README](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/singpass-post-compromise-monitoring/README.md)
-- [project plan](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/singpass-post-compromise-monitoring/project_plan.md)
+- [project README](singpass-post-compromise-monitoring/README.md)
+- [project plan](singpass-post-compromise-monitoring/project_plan.md)
 
 Current final project-2 comparison:
 
@@ -114,24 +118,54 @@ The final selected decision layer for project 2 is the recall-first hybrid polic
 
 The following documents define the shared system before project-specific modeling begins:
 
-- [Singpass event taxonomy](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/pre_requisites/singpass_event_taxonomy.md)
-- [Data schema](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/pre_requisites/data_schema.md)
-- [Backend table design](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/pre_requisites/backend_table_design.md)
-- [Shared simulation scenarios](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/pre_requisites/shared_simulation_scenarios.md)
-- [Portfolio architecture](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/pre_requisites/portfolio_architecture.md)
+- [Singpass event taxonomy](pre_requisites/singpass_event_taxonomy.md)
+- [Data schema](pre_requisites/data_schema.md)
+- [Backend table design](pre_requisites/backend_table_design.md)
+- [Shared simulation scenarios](pre_requisites/shared_simulation_scenarios.md)
+- [Portfolio architecture](pre_requisites/portfolio_architecture.md)
+- [MLOps architecture](pre_requisites/mlops_architecture.md)
 
 ## Synthetic data
 
-The shared synthetic data layer is generated from the scripts under [data](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/data/README.md).
+The shared synthetic data layer is generated from the scripts under [data](data/README.md).
 
 This layer is meant to mimic a minimum viable backend environment for both projects, not just produce flat training files.
 
+The repository also now includes a thin [pipelines](pipelines/README.md) layer to orchestrate:
+
+- shared data generation
+- project-1 rebuilds
+- project-2 rebuilds
+- full portfolio rebuilds
+
+And a [monitoring](monitoring/README.md) layer to convert scored outputs into operational summaries for later dashboarding.
+
+The repository also now includes a target [MLOps architecture](pre_requisites/mlops_architecture.md) for moving the portfolio into Google Cloud.
+
+## Environment setup
+
+Create a local virtual environment named `singpass_anti_fraud_venv` and install the required packages:
+
+```bash
+python3 -m venv singpass_anti_fraud_venv
+source singpass_anti_fraud_venv/bin/activate
+pip install -r requirements.txt
+```
+
+If you prefer not to activate the environment, the repository commands assume this local path:
+
+```bash
+./singpass_anti_fraud_venv/bin/python
+./singpass_anti_fraud_venv/bin/uvicorn
+./singpass_anti_fraud_venv/bin/streamlit
+```
+
 ## Recommended reading order
 
-1. [initial_research](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/initial_research/initial_research.md)
-2. [portfolio_architecture](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/pre_requisites/portfolio_architecture.md)
-3. [singpass-login-risk-engine](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/singpass-login-risk-engine/README.md)
-4. [singpass-post-compromise-monitoring](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/singpass-post-compromise-monitoring/README.md)
+1. [initial_research](initial_research/initial_research.md)
+2. [portfolio_architecture](pre_requisites/portfolio_architecture.md)
+3. [singpass-login-risk-engine](singpass-login-risk-engine/README.md)
+4. [singpass-post-compromise-monitoring](singpass-post-compromise-monitoring/README.md)
 
 ## Scope note
 

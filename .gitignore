@@ -12,6 +12,7 @@ __pycache__/
 .venv/
 venv/
 env/
+singpass_anti_fraud_venv/
 
 # Test and tooling caches
 .pytest_cache/

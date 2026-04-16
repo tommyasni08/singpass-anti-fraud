@@ -57,7 +57,65 @@ def _null_rate(rows: list[dict], key: str) -> tuple[int, str]:
     return missing, _pct(missing, len(rows))
 
 
-def build_login_monitoring() -> tuple[list[dict], dict]:
+def _scenario_mix_rows(
+    rows: list[dict],
+    scoring_name: str,
+    scenario_key: str,
+    target_key: str,
+    review_key: str,
+) -> list[dict]:
+    reviewed = [row for row in rows if row[review_key] == "1"]
+    total_reviewed = len(reviewed)
+    scenario_counter = Counter(row[scenario_key] for row in reviewed)
+    fraud_counter = Counter(row[scenario_key] for row in reviewed if row[target_key] == "1")
+    out = []
+    for scenario, total in sorted(scenario_counter.items(), key=lambda item: (-item[1], item[0])):
+        fraud = fraud_counter[scenario]
+        out.append(
+            {
+                "scoring_name": scoring_name,
+                "metric_group": "reviewed_scenario_mix",
+                "metric_key": scenario,
+                "metric_value": total,
+                "metric_rate": _pct(total, total_reviewed),
+                "fraud_rows": fraud,
+                "fraud_rate_within_group": _pct(fraud, total),
+            }
+        )
+    return out
+
+
+def _top_review_rows(
+    rows: list[dict],
+    scoring_name: str,
+    entity_key: str,
+    scenario_key: str,
+    target_key: str,
+    action_key: str,
+    ml_score_key: str,
+    limit: int = 25,
+) -> list[dict]:
+    reviewed = [row for row in rows if row["hybrid_review_flag"] == "1"]
+    reviewed.sort(key=lambda row: (-float(row[ml_score_key]), row[entity_key]))
+    out = []
+    for row in reviewed[:limit]:
+        out.append(
+            {
+                "scoring_name": scoring_name,
+                "entity_id": row[entity_key],
+                "fraud_scenario": row[scenario_key],
+                "target_fraud_flag": row[target_key],
+                "hybrid_action": row[action_key],
+                "hybrid_risk_band": row["hybrid_risk_band"],
+                "rule_score": row["rule_score"],
+                "rule_risk_band": row["rule_risk_band"],
+                "ml_score": row[ml_score_key],
+            }
+        )
+    return out
+
+
+def build_login_monitoring() -> tuple[list[dict], list[dict], list[dict], dict]:
     hybrid_rows = _read_csv(
         REPO_ROOT / "singpass-login-risk-engine" / "hybrid_score" / "generated" / "hybrid_scores.csv"
     )
@@ -78,11 +136,11 @@ def build_login_monitoring() -> tuple[list[dict], dict]:
     )
     band_counter = Counter(_score_band(float(row["ml_score"]), (0.3, 0.8)) for row in hybrid_rows)
 
-    summary_rows = []
+    metrics_rows = []
     for action in sorted(action_counter):
         total = action_counter[action]
         fraud = action_fraud_counter[action]
-        summary_rows.append(
+        metrics_rows.append(
             {
                 "scoring_name": "login_score",
                 "metric_group": "action_distribution",
@@ -96,7 +154,7 @@ def build_login_monitoring() -> tuple[list[dict], dict]:
 
     for band in ["low", "medium", "high"]:
         total = band_counter[band]
-        summary_rows.append(
+        metrics_rows.append(
             {
                 "scoring_name": "login_score",
                 "metric_group": "ml_score_band",
@@ -111,22 +169,61 @@ def build_login_monitoring() -> tuple[list[dict], dict]:
     approval_missing, approval_missing_rate = _null_rate(feature_rows, "approval_latency_seconds")
     last_success_missing, last_success_missing_rate = _null_rate(feature_rows, "days_since_last_successful_login")
 
+    ops_rows = []
+    for action in sorted(action_counter):
+        total = action_counter[action]
+        fraud = action_fraud_counter[action]
+        ops_rows.append(
+            {
+                "scoring_name": "login_score",
+                "metric_group": "action_distribution",
+                "metric_key": action,
+                "metric_value": total,
+                "metric_rate": _pct(total, total_rows),
+                "fraud_rows": fraud,
+                "fraud_rate_within_group": _pct(fraud, total),
+            }
+        )
+    ops_rows.extend(
+        _scenario_mix_rows(
+            hybrid_rows,
+            scoring_name="login_score",
+            scenario_key="fraud_scenario",
+            target_key="target_login_fraud_flag",
+            review_key="hybrid_review_flag",
+        )
+    )
+
+    top_review = _top_review_rows(
+        hybrid_rows,
+        scoring_name="login_score",
+        entity_key="event_id",
+        scenario_key="fraud_scenario",
+        target_key="target_login_fraud_flag",
+        action_key="hybrid_action",
+        ml_score_key="ml_score",
+    )
+
     summary = {
-        "total_rows": total_rows,
-        "fraud_rows": fraud_rows,
-        "review_rows": review_rows,
-        "review_rate": _pct(review_rows, total_rows),
-        "recall": _pct(review_fraud_rows, fraud_rows),
-        "precision": _pct(review_fraud_rows, review_rows),
-        "approval_latency_missing_rows": approval_missing,
-        "approval_latency_missing_rate": approval_missing_rate,
-        "days_since_last_success_missing_rows": last_success_missing,
-        "days_since_last_success_missing_rate": last_success_missing_rate,
+        "ops": {
+            "total_rows": total_rows,
+            "fraud_rows": fraud_rows,
+            "review_rows": review_rows,
+            "review_rate": _pct(review_rows, total_rows),
+        },
+        "metrics": {
+            "recall": _pct(review_fraud_rows, fraud_rows),
+            "precision": _pct(review_fraud_rows, review_rows),
+            "approval_latency_missing_rows": approval_missing,
+            "approval_latency_missing_rate": approval_missing_rate,
+            "days_since_last_success_missing_rows": last_success_missing,
+            "days_since_last_success_missing_rate": last_success_missing_rate,
+        },
     }
-    return summary_rows, summary
+    return ops_rows, metrics_rows, top_review, summary
 
 
-def build_session_monitoring() -> tuple[list[dict], dict]:
+def build_session_monitoring() -> tuple[list[dict], list[dict], list[dict], dict]:
     hybrid_rows = _read_csv(
         REPO_ROOT
         / "singpass-post-compromise-monitoring"
@@ -155,11 +252,11 @@ def build_session_monitoring() -> tuple[list[dict], dict]:
     )
     band_counter = Counter(_score_band(float(row["ml_score"]), (0.3, 0.8)) for row in hybrid_rows)
 
-    summary_rows = []
+    metrics_rows = []
     for action in sorted(action_counter):
         total = action_counter[action]
         fraud = action_fraud_counter[action]
-        summary_rows.append(
+        metrics_rows.append(
             {
                 "scoring_name": "session_score",
                 "metric_group": "action_distribution",
@@ -173,7 +270,7 @@ def build_session_monitoring() -> tuple[list[dict], dict]:
 
     for band in ["low", "medium", "high"]:
         total = band_counter[band]
-        summary_rows.append(
+        metrics_rows.append(
             {
                 "scoring_name": "session_score",
                 "metric_group": "ml_score_band",
@@ -192,19 +289,58 @@ def build_session_monitoring() -> tuple[list[dict], dict]:
         feature_rows, "time_to_first_service_switch_seconds"
     )
 
+    ops_rows = []
+    for action in sorted(action_counter):
+        total = action_counter[action]
+        fraud = action_fraud_counter[action]
+        ops_rows.append(
+            {
+                "scoring_name": "session_score",
+                "metric_group": "action_distribution",
+                "metric_key": action,
+                "metric_value": total,
+                "metric_rate": _pct(total, total_rows),
+                "fraud_rows": fraud,
+                "fraud_rate_within_group": _pct(fraud, total),
+            }
+        )
+    ops_rows.extend(
+        _scenario_mix_rows(
+            hybrid_rows,
+            scoring_name="session_score",
+            scenario_key="dominant_fraud_scenario",
+            target_key="target_post_login_fraud_flag",
+            review_key="hybrid_review_flag",
+        )
+    )
+
+    top_review = _top_review_rows(
+        hybrid_rows,
+        scoring_name="session_score",
+        entity_key="session_id",
+        scenario_key="dominant_fraud_scenario",
+        target_key="target_post_login_fraud_flag",
+        action_key="hybrid_action",
+        ml_score_key="ml_score",
+    )
+
     summary = {
-        "total_rows": total_rows,
-        "fraud_rows": fraud_rows,
-        "review_rows": review_rows,
-        "review_rate": _pct(review_rows, total_rows),
-        "recall": _pct(review_fraud_rows, fraud_rows),
-        "precision": _pct(review_fraud_rows, review_rows),
-        "time_to_first_sensitive_missing_rows": first_sensitive_missing,
-        "time_to_first_sensitive_missing_rate": first_sensitive_missing_rate,
-        "time_to_first_service_switch_missing_rows": first_switch_missing,
-        "time_to_first_service_switch_missing_rate": first_switch_missing_rate,
+        "ops": {
+            "total_rows": total_rows,
+            "fraud_rows": fraud_rows,
+            "review_rows": review_rows,
+            "review_rate": _pct(review_rows, total_rows),
+        },
+        "metrics": {
+            "recall": _pct(review_fraud_rows, fraud_rows),
+            "precision": _pct(review_fraud_rows, review_rows),
+            "time_to_first_sensitive_missing_rows": first_sensitive_missing,
+            "time_to_first_sensitive_missing_rate": first_sensitive_missing_rate,
+            "time_to_first_service_switch_missing_rows": first_switch_missing,
+            "time_to_first_service_switch_missing_rate": first_switch_missing_rate,
+        },
     }
-    return summary_rows, summary
+    return ops_rows, metrics_rows, top_review, summary
 
 
 def build_report(login_summary: dict, session_summary: dict) -> str:
@@ -219,25 +355,25 @@ def build_report(login_summary: dict, session_summary: dict) -> str:
         "",
         "## Login Score Monitoring",
         "",
-        f"- total scored logins: {login_summary['total_rows']:,}",
-        f"- fraud-labelled logins: {login_summary['fraud_rows']:,}",
-        f"- reviewed logins: {login_summary['review_rows']:,}",
-        f"- review rate: {login_summary['review_rate']}",
-        f"- recall: {login_summary['recall']}",
-        f"- precision: {login_summary['precision']}",
-        f"- approval latency missing rate: {login_summary['approval_latency_missing_rate']}",
-        f"- days-since-last-success missing rate: {login_summary['days_since_last_success_missing_rate']}",
+        f"- total scored logins: {login_summary['ops']['total_rows']:,}",
+        f"- fraud-labelled logins: {login_summary['ops']['fraud_rows']:,}",
+        f"- reviewed logins: {login_summary['ops']['review_rows']:,}",
+        f"- review rate: {login_summary['ops']['review_rate']}",
+        f"- recall: {login_summary['metrics']['recall']}",
+        f"- precision: {login_summary['metrics']['precision']}",
+        f"- approval latency missing rate: {login_summary['metrics']['approval_latency_missing_rate']}",
+        f"- days-since-last-success missing rate: {login_summary['metrics']['days_since_last_success_missing_rate']}",
         "",
         "## Session Score Monitoring",
         "",
-        f"- total scored sessions: {session_summary['total_rows']:,}",
-        f"- fraud-labelled sessions: {session_summary['fraud_rows']:,}",
-        f"- reviewed sessions: {session_summary['review_rows']:,}",
-        f"- review rate: {session_summary['review_rate']}",
-        f"- recall: {session_summary['recall']}",
-        f"- precision: {session_summary['precision']}",
-        f"- first-sensitive-event missing rate: {session_summary['time_to_first_sensitive_missing_rate']}",
-        f"- first-service-switch missing rate: {session_summary['time_to_first_service_switch_missing_rate']}",
+        f"- total scored sessions: {session_summary['ops']['total_rows']:,}",
+        f"- fraud-labelled sessions: {session_summary['ops']['fraud_rows']:,}",
+        f"- reviewed sessions: {session_summary['ops']['review_rows']:,}",
+        f"- review rate: {session_summary['ops']['review_rate']}",
+        f"- recall: {session_summary['metrics']['recall']}",
+        f"- precision: {session_summary['metrics']['precision']}",
+        f"- first-sensitive-event missing rate: {session_summary['metrics']['time_to_first_sensitive_missing_rate']}",
+        f"- first-service-switch missing rate: {session_summary['metrics']['time_to_first_service_switch_missing_rate']}",
         "",
         "## Notes",
         "",
@@ -249,12 +385,16 @@ def build_report(login_summary: dict, session_summary: dict) -> str:
 
 
 def main() -> None:
-    login_rows, login_summary = build_login_monitoring()
-    session_rows, session_summary = build_session_monitoring()
+    login_ops_rows, login_metrics_rows, login_review_rows, login_summary = build_login_monitoring()
+    session_ops_rows, session_metrics_rows, session_review_rows, session_summary = build_session_monitoring()
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    _write_csv(login_rows, OUTPUT_DIR / "login_score_monitoring.csv")
-    _write_csv(session_rows, OUTPUT_DIR / "session_score_monitoring.csv")
+    _write_csv(login_ops_rows, OUTPUT_DIR / "login_score_ops.csv")
+    _write_csv(login_metrics_rows, OUTPUT_DIR / "login_score_metrics.csv")
+    _write_csv(login_review_rows, OUTPUT_DIR / "login_score_review_cases.csv")
+    _write_csv(session_ops_rows, OUTPUT_DIR / "session_score_ops.csv")
+    _write_csv(session_metrics_rows, OUTPUT_DIR / "session_score_metrics.csv")
+    _write_csv(session_review_rows, OUTPUT_DIR / "session_score_review_cases.csv")
     _write_text(build_report(login_summary, session_summary), OUTPUT_DIR / "portfolio_monitoring_report.md")
     _write_json(
         {
@@ -267,8 +407,12 @@ def main() -> None:
         {
             "generated_at_utc": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
             "outputs": [
-                "login_score_monitoring.csv",
-                "session_score_monitoring.csv",
+                "login_score_ops.csv",
+                "login_score_metrics.csv",
+                "login_score_review_cases.csv",
+                "session_score_ops.csv",
+                "session_score_metrics.csv",
+                "session_score_review_cases.csv",
                 "portfolio_monitoring_report.md",
                 "portfolio_monitoring_summary.json",
             ],

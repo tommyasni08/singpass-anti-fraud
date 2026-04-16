@@ -42,7 +42,7 @@ python pipelines/src/run_pipeline.py --target login_score
 If you prefer not to activate the environment first, use the project virtual environment explicitly:
 
 ```bash
-../3.11_tasni_venv/bin/python pipelines/src/run_pipeline.py --target login_score
+./singpass_anti_fraud_venv/bin/python pipelines/src/run_pipeline.py --target login_score
 ```
 
 ## Supported targets

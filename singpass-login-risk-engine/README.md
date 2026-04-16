@@ -60,20 +60,20 @@ The project output is not just a fraud probability. It is an operational decisio
 
 ## Current outputs
 
-- [Project Plan](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/singpass-login-risk-engine/project_plan.md)
-- [Feature Engineering](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/singpass-login-risk-engine/feature_engineering/README.md)
-- [Rule-Based Score](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/singpass-login-risk-engine/rule_based_score/README.md)
-- [ML-Based Score](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/singpass-login-risk-engine/ml_based_score/README.md)
-- [Hybrid Score](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/singpass-login-risk-engine/hybrid_score/README.md)
+- [Project Plan](project_plan.md)
+- [Feature Engineering](feature_engineering/README.md)
+- [Rule-Based Score](rule_based_score/README.md)
+- [ML-Based Score](ml_based_score/README.md)
+- [Hybrid Score](hybrid_score/README.md)
 
 Key generated artifacts:
 
-- [Login Features](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/singpass-login-risk-engine/feature_engineering/generated/login_features.csv)
-- [Feature Quality Report](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/singpass-login-risk-engine/feature_engineering/generated/feature_quality_report.md)
-- [Rule Quality Report](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/singpass-login-risk-engine/rule_based_score/generated/rule_quality_report.md)
-- [ML Evaluation Report](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/singpass-login-risk-engine/ml_based_score/generated/ml_evaluation_report.md)
-- [Hybrid Evaluation Report](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/singpass-login-risk-engine/hybrid_score/generated/hybrid_evaluation_report.md)
-- [Model Comparison](/Users/tommyasni08/Documents/Projects/singpass-anti-fraud/singpass-login-risk-engine/hybrid_score/generated/model_comparison.md)
+- [Login Features](feature_engineering/generated/login_features.csv)
+- [Feature Quality Report](feature_engineering/generated/feature_quality_report.md)
+- [Rule Quality Report](rule_based_score/generated/rule_quality_report.md)
+- [ML Evaluation Report](ml_based_score/generated/ml_evaluation_report.md)
+- [Hybrid Evaluation Report](hybrid_score/generated/hybrid_evaluation_report.md)
+- [Model Comparison](hybrid_score/generated/model_comparison.md)
 
 ## Current model results
 

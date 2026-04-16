@@ -72,7 +72,7 @@ The event-triggered session route is the more production-like path for project 2
 From the repository root:
 
 ```bash
-../3.11_tasni_venv/bin/uvicorn api.app.main:app --reload
+./singpass_anti_fraud_venv/bin/uvicorn api.app.main:app --reload
 ```
 
 ## Example request

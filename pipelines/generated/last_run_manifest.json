@@ -2,7 +2,8 @@
   "target": "login_score",
   "started_at_utc": "2026-04-15T10:51:57+00:00",
   "completed_at_utc": "2026-04-15T10:52:11+00:00",
-  "python_executable": "/Users/tommyasni08/Documents/Projects/3.11_tasni_venv/bin/python",
+  "python_executable": "python",
+  "virtual_environment_hint": "singpass_anti_fraud_venv",
   "steps": [
     "login_feature_engineering",
     "login_rule_scoring",

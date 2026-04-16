@@ -82,7 +82,8 @@ def _write_manifest(target: str, started_at: str, completed_at: str, step_names:
         "target": target,
         "started_at_utc": started_at,
         "completed_at_utc": completed_at,
-        "python_executable": sys.executable,
+        "python_executable": Path(sys.executable).name,
+        "virtual_environment_hint": "singpass_anti_fraud_venv",
         "steps": step_names,
     }
     MANIFEST_PATH.write_text(json.dumps(manifest, indent=2) + "\n")
