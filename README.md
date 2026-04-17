@@ -9,6 +9,10 @@ The portfolio is built around two complementary objectives:
 
 The work is intentionally structured to resemble a real fraud program rather than a single isolated notebook or model.
 
+## Quick visual summary
+
+![Singpass Anti-Fraud one-pager](assets/singpass_anti_fraud_one_pager.png)
+
 ## Repository structure
 
 - [initial_research](initial_research/initial_research.md)
